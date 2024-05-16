@@ -1,0 +1,48 @@
+debug: true
+
+logging:
+  version: 1
+  formatters:
+    rich:
+      format: "%(message)s"
+    file:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  handlers:
+    console:
+      formatter: rich
+      class: rich.logging.RichHandler
+      show_path: false
+    file:
+      formatter: file
+      class: logging.handlers.RotatingFileHandler
+      filename: "qiandao.log"
+  loggers:
+    qiandao:
+      level: INFO
+      handlers: [console, file]
+      propagate: false
+
+notify:
+  hostname: "api.day.app"
+  device_id: ""
+
+tasks:
+  test:
+    schedule:
+      trigger: "interval"
+      seconds: 3
+
+  v2ex:
+    cookies: ''
+    schedule:
+      trigger: "crontab"
+      expr: "0 0 8 * *"
+
+  linux_do:
+    cookies: ''
+    csrf_token: ''
+    schedule:
+      trigger: "crontab"
+      expr: "0 0 8 * *"
+
+

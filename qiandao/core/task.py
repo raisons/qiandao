@@ -2,41 +2,51 @@
 import abc
 import logging
 import httpx
+from typing import ClassVar, Optional, Any
+from pydantic import BaseModel, ConfigDict, Field
+from apscheduler.schedulers.base import BaseScheduler
 
-from qiandao.core.notifications import bark
-from qiandao.core.conf import settings
-
-logger = logging.getLogger(__name__)
+from qiandao.core.notify import Notification
 
 
-class Task:
-    name: str = None
-    pusher = bark
-    settings = settings
+class Task(BaseModel):
+    name: ClassVar[str] = None
 
-    def __init__(self):
-        self.client = self.get_http_client()
+    client: httpx.Client = Field(default=None, exclude=True, repr=False)
+    schedule: Optional[dict[str, Any]] = None
+    pusher: Optional[Notification] = None
 
-    def get_http_client(self):
-        return httpx.Client()
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def register_job(self, scheduler: BaseScheduler):
+        if self.schedule:
+            scheduler.add_job(self, **self.schedule)
+
+    def get_http_client(self, *args, **kwargs):
+        return httpx.Client(*args, **kwargs)
+
+    @property
+    def logger(self):
+        return logging.getLogger(self.__module__)
 
     def log(self, message, level: str = "INFO"):
         mapping = logging.getLevelNamesMapping()
-        logger.log(mapping[level], message)
+        self.logger.log(mapping[level], message)
 
     def notify(self, message: str):
         self.log("%s: %s" % (self.name, message))
-        return self.pusher.notify(message, title=self.name)
+        if self.pusher:
+            return self.pusher.send(message, title=self.name)
 
     def pre_process(self):
-        pass
+        self.client = self.get_http_client()
 
     @abc.abstractmethod
     def process(self):
         pass
 
     def post_process(self):
-        pass
+        self.client.close()
 
     def __call__(self, *args, **kwargs):
         self.log(f"processing job: {self.name}", level="DEBUG")

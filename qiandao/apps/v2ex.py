@@ -1,26 +1,28 @@
 #!/usr/bin/env python
 import re
 import httpx
+from typing import ClassVar
 from lxml import html
-from qiandao.core import safari, Task, scheduler
+
+from qiandao.core.task import Task
+from qiandao.core.useragents import safari
 
 
-@scheduler.crontab_job(hour=8, minute=0, second=0)
-class V2EX(Task):
+class V2exTask(Task):
     """
     V2EX 领取每日铜币
     """
-    name = "V2EX"
+    name: ClassVar[str] = "V2EX"
 
-    def get_http_client(self):
-        return httpx.Client(
+    cookies: str
+
+    def pre_process(self):
+        self.client = httpx.Client(
             headers={
                 "Referer": "https://www.v2ex.com/",
                 "User-Agent": safari
             },
-            cookies=self.split_cookie(
-                self.settings.V2EX_COOKIES
-            ),
+            cookies=self.split_cookie(self.cookies),
         )
 
     def query_balance(self):

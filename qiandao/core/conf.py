@@ -1,33 +1,56 @@
 #!/usr/bin/env python
-from pathlib import Path
-from pydantic_settings import BaseSettings, SettingsConfigDict
+import yaml
+import logging.config
+from rich import print
+from pydantic import BaseModel
+
+from qiandao.core.notify import BarkNotification
+from qiandao.apps.test import TestTask
+from qiandao.apps.v2ex import V2exTask
+from qiandao.apps.linux_do import LinuxDoTask
 
 
-class Settings(BaseSettings):
-    QIANDAO_DEBUG: bool = False  # noqa
-    LOG_DIR: str = "."
-    LOG_NAME: str = "qiandao.log"
+class Tasks(BaseModel):
+    v2ex: V2exTask = None
+    test: TestTask = None
+    linux_do: LinuxDoTask = None
 
-    BARK_DEVICE: str
-    BARK_HOSTNAME: str = "api.day.app"
 
-    V2EX_COOKIES: str
-    LINUXDO_COOKIES: str  # noqa
-    LINUXDO_CSRF_TOKEN: str  # noqa
+class Settings(BaseModel):
+    debug: bool
+    notify: BarkNotification = None
+    logging: dict
+    tasks: Tasks
 
     @property
-    def log_file(self):
-        return Path(self.LOG_DIR).joinpath(self.LOG_NAME)
+    def enabled_tasks(self):
+        for task_name, task in self.tasks:
+            if task:
+                yield task_name, task
 
-    @property
-    def DEBUG(self):
-        return self.QIANDAO_DEBUG
+    @classmethod
+    def from_yaml(cls, file):
+        with open(file, "r") as fp:
+            conf = yaml.safe_load(fp)
+        return cls.model_validate(conf)
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=True,
-        extra="ignore"
-    )
+    def configure_notifications(self):
+        for task_name, task in self.enabled_tasks:
+            task.pusher = self.notify
+
+    def configure_logging(self):
+        logging.config.dictConfig(self.logging)
 
 
-settings = Settings()
+if __name__ == '__main__':
+    settings = Settings.from_yaml("qiandao.yaml")
+    settings.configure_notifications()
+    settings.configure_logging()
+    # print(settings.tasks.test)
+
+    for i in settings.tasks:
+        print(i)
+
+    print(settings.notify)
+
+    print(settings)
