@@ -2,19 +2,26 @@
 import abc
 import logging
 import httpx
+import datetime
 from typing import ClassVar, Optional, Any
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 from apscheduler.schedulers.base import BaseScheduler
 
 from qiandao.core.notify import Notification
 
 
 class Task(BaseModel):
+    """
+    Task基础类
+    """
     name: ClassVar[str] = None
-
     client: httpx.Client = Field(default=None, exclude=True, repr=False)
-    schedule: Optional[dict[str, Any]] = None
     pusher: Optional[Notification] = None
+
+    # 可配置项
+    enable: Optional[bool] = True
+    schedule: Optional[dict[str, Any]] = None
+    http_proxy: Optional[HttpUrl] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -35,6 +42,9 @@ class Task(BaseModel):
 
     def notify(self, message: str):
         self.log("%s: %s" % (self.name, message))
+        now = datetime.datetime.now()
+        now = now.strftime("%Y%m%d")
+        message = f"{now}: {message}"
         if self.pusher:
             return self.pusher.send(message, title=self.name)
 
@@ -55,7 +65,7 @@ class Task(BaseModel):
         self.post_process()
 
     @staticmethod
-    def split_cookie(raw_cookie: str):
+    def split_cookie(raw_cookie: str) -> dict[str, str]:
         """
         解析cookie字符串
         """

@@ -8,12 +8,14 @@ from qiandao.core.notify import BarkNotification
 from qiandao.apps.test import TestTask
 from qiandao.apps.v2ex import V2exTask
 from qiandao.apps.linux_do import LinuxDoTask
+from qiandao.apps.it_home import ItHomeTask
 
 
 class Tasks(BaseModel):
     v2ex: V2exTask = None
     test: TestTask = None
     linux_do: LinuxDoTask = None
+    it_home: ItHomeTask = None
 
 
 class Settings(BaseModel):
@@ -25,7 +27,7 @@ class Settings(BaseModel):
     @property
     def enabled_tasks(self):
         for task_name, task in self.tasks:
-            if task:
+            if task and task.enable:
                 yield task_name, task
 
     @classmethod
