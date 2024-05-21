@@ -4,10 +4,19 @@ import logging
 import httpx
 import datetime
 from typing import ClassVar, Optional, Any
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, ValidationError
 from apscheduler.schedulers.base import BaseScheduler
 
 from qiandao.core.notify import Notification
+from qiandao.core.utils import ErrorConverter
+
+
+class TaskException(Exception):
+    pass
+
+
+class TaskContext(BaseModel):
+    pass
 
 
 class Task(BaseModel):
@@ -16,6 +25,7 @@ class Task(BaseModel):
     """
     name: ClassVar[str] = None
     client: httpx.Client = Field(default=None, exclude=True, repr=False)
+    context: TaskContext = Field(default=None, exclude=True, repr=False)
     pusher: Optional[Notification] = None
 
     # 可配置项
@@ -48,6 +58,9 @@ class Task(BaseModel):
         if self.pusher:
             return self.pusher.send(message, title=self.name)
 
+    def raise_exception(self, message):
+        raise TaskException(message)
+
     def pre_process(self):
         self.client = self.get_http_client()
 
@@ -60,9 +73,12 @@ class Task(BaseModel):
 
     def __call__(self, *args, **kwargs):
         self.log(f"processing job: {self.name}", level="DEBUG")
-        self.pre_process()
-        self.process()
-        self.post_process()
+        try:
+            self.pre_process()
+            self.process()
+            self.post_process()
+        except ValidationError as e:
+            self.logger.error(ErrorConverter(e))
 
     @staticmethod
     def split_cookie(raw_cookie: str) -> dict[str, str]:
