@@ -5,6 +5,7 @@ import re
 import datetime
 import binascii
 from typing import ClassVar
+from pydantic import BaseModel
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 
@@ -24,6 +25,16 @@ STRING_LIST = (
 
 # qiandaocode = [0, 1, 2, 3, 256, 257, 258, 259, 512, 513, 514, 515, 768,
 #                769, 770, 771]
+
+class Result(BaseModel):
+    cdays: int
+    remainday: int
+    ok: int
+    title: str
+    itype: int
+    ntype: int
+    message: dict
+    coin: int
 
 
 class ItHomeTask(Task):
@@ -132,8 +143,10 @@ class ItHomeTask(Task):
             sign_key: sign_val,
         }
 
-        try:
-            data = httpx.get(url=url, params=params, headers=headers).json()
+        data = httpx.get(url=url, params=params, headers=headers).json()
+        self.logger.debug(data)
+        if data["ok"] == 1:
+            result = Result.model_validate(data)
+            self.notify(f"{result.title}, {result.message['签到奖励']}")
+        else:
             self.notify(data["msg"])
-        except Exception as e:
-            self.log(e)
