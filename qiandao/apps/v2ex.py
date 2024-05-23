@@ -16,8 +16,8 @@ class V2exTask(Task):
 
     cookies: str
 
-    def pre_process(self):
-        self.client = httpx.Client(
+    def get_http_client(self):
+        return httpx.Client(
             headers={
                 "Referer": "https://www.v2ex.com/",
                 "User-Agent": safari

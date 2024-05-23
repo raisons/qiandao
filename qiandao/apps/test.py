@@ -7,5 +7,5 @@ class TestTask(Task):
     name: ClassVar[str] = "TestTask"
 
     def process(self):
-        # self.notify("测试成功")
-        self.log("测试成功")
+        self.notify("测试成功")
+        # self.logger.debug("测试成功")

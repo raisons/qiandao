@@ -33,19 +33,18 @@ class TankTask(Task):
 
     access_token: str
 
-    def pre_process(self):
-        headers = {
-            "Accept": "application/json, text/plain, */*",
-            "User-Agent": iphone_tank,
-            "accessToken": self.access_token,
-            "brand": "7",
-            "terminal": "GW_APP_TANK",
-            "brandCode": "CCT001",
-            "enterpriseId": "CC01",
-            "rs": "2",  # required
-        }
-        self.client = httpx.Client(
-            headers=headers,
+    def get_http_client(self):
+        return httpx.Client(
+            headers={
+                "Accept": "application/json, text/plain, */*",
+                "User-Agent": iphone_tank,
+                "accessToken": self.access_token,
+                "brand": "7",
+                "terminal": "GW_APP_TANK",
+                "brandCode": "CCT001",
+                "enterpriseId": "CC01",
+                "rs": "2",  # required
+            },
             base_url="https://gw-h5-gateway.gwmapp-w.com"
         )
 

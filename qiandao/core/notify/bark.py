@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import httpx
 from typing import Literal, Annotated
-from urllib.parse import urljoin
 from pydantic import (
     BaseModel,
     Field,
@@ -9,17 +8,18 @@ from pydantic import (
     ConfigDict,
     AliasGenerator,
     field_validator,
-    ValidationError
 )
 from pydantic.alias_generators import to_camel
 
-# from .conf import settings
 from .base import Notification
 
 BarkTimeLevel = Literal["active", "timeSensitive", "passive"]
 
 
 class BarkNotification(Notification, BaseModel):
+    """
+    https://bark.day.app/#/tutorial
+    """
     # host
     hostname: Annotated[
         str,
@@ -55,14 +55,8 @@ class BarkNotification(Notification, BaseModel):
         assert v != ""
         return v
 
-    def build_url(self, message, title="qiandao"):
-        url = "/".join([
-            self.hostname,
-            self.device_id,
-            title,
-            message
-        ])
-        return "https://" + url
+    def build_url(self):
+        return f"https://{self.hostname}/{self.device_id}"
 
     @property
     def params(self):
@@ -73,8 +67,12 @@ class BarkNotification(Notification, BaseModel):
         )
 
     def send(self, message: str, title: str = None):
-        url = self.build_url(message, title)
-        response = httpx.get(url, params=self.params)
+        url = self.build_url()
+        payload = self.params
+        payload["title"] = title
+        payload["body"] = message
+
+        response = httpx.post(url, json=payload)
 
         if response.status_code != 200:
             raise RuntimeError
@@ -84,16 +82,3 @@ class BarkNotification(Notification, BaseModel):
             raise RuntimeError(data["message"])
 
         return True
-
-
-if __name__ == '__main__':
-    b = BarkNotification(
-        hostname="sadf",
-        is_archive="sss",
-        device_id="ss",
-        copy=""
-    )
-    print(b.model_dump(by_alias=True, exclude_none=True))
-    # p = BarkParams(sound="asdf", is_archive="1")
-
-    # print(p.model_dump(exclude_none=True, by_alias=True))

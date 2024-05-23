@@ -1,4 +1,4 @@
-debug: true
+debug: false
 
 logging:
   version: 1
@@ -28,21 +28,26 @@ notify:
 
 tasks:
   test:
-    schedule:
-      trigger: "interval"
-      seconds: 3
+    enable: true
 
   v2ex:
+    enable: true
     cookies: ''
-    schedule:
-      trigger: "crontab"
-      expr: "0 0 8 * *"
 
   linux_do:
+    enable: true
     cookies: ''
     csrf_token: ''
-    schedule:
-      trigger: "crontab"
-      expr: "0 0 8 * *"
 
+  it_home:
+    enable: true
+    username: ""
+    password: ""
 
+  tank:
+    enable: true
+    access_token:
+
+schedule:
+  trigger: "crontab"
+  expr: "0 0 8 * *"

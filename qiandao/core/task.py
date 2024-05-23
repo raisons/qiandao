@@ -2,13 +2,21 @@
 import abc
 import logging
 import httpx
-import datetime
-from typing import ClassVar, Optional, Any
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, ValidationError
-from apscheduler.schedulers.base import BaseScheduler
+from functools import cached_property
+from typing import ClassVar, Optional, Annotated
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    ValidationError,
+    PrivateAttr
+)
 
 from qiandao.core.notify import Notification
 from qiandao.core.utils import ErrorConverter
+
+Configurable = Field(frozen=True)
 
 
 class TaskException(Exception):
@@ -16,7 +24,11 @@ class TaskException(Exception):
 
 
 class TaskContext(BaseModel):
-    pass
+    client: httpx.Client = None
+    pusher: Optional[Notification] = None
+    msg: list = []
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class Task(BaseModel):
@@ -24,55 +36,48 @@ class Task(BaseModel):
     Task基础类
     """
     name: ClassVar[str] = None
-    client: httpx.Client = Field(default=None, exclude=True, repr=False)
-    context: TaskContext = Field(default=None, exclude=True, repr=False)
-    pusher: Optional[Notification] = None
 
     # 可配置项
-    enable: Optional[bool] = True
-    schedule: Optional[dict[str, Any]] = None
-    http_proxy: Optional[HttpUrl] = None
+    enable: Annotated[bool, Configurable] = False
+    http_proxy: Annotated[HttpUrl, Configurable] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def register_job(self, scheduler: BaseScheduler):
-        if self.schedule:
-            scheduler.add_job(self, **self.schedule)
-
-    def get_http_client(self, *args, **kwargs):
-        return httpx.Client(*args, **kwargs)
+    _context: TaskContext = PrivateAttr()
 
     @property
+    def ctx(self):
+        return self._context
+
+    @property
+    def client(self):
+        return self.ctx.client
+
+    @cached_property
     def logger(self):
         return logging.getLogger(self.__module__)
 
-    def log(self, message, level: str = "INFO"):
-        mapping = logging.getLevelNamesMapping()
-        self.logger.log(mapping[level], message)
+    def get_http_client(self):
+        return httpx.Client()
 
     def notify(self, message: str):
-        self.log("%s: %s" % (self.name, message))
-        now = datetime.datetime.now()
-        now = now.strftime("%Y%m%d")
-        message = f"{now}: {message}"
-        if self.pusher:
-            return self.pusher.send(message, title=self.name)
-
-    def raise_exception(self, message):
-        raise TaskException(message)
+        self.logger.info("%s: %s" % (self.name, message))
+        self.ctx.msg.append(message)
 
     def pre_process(self):
-        self.client = self.get_http_client()
+        self._context = TaskContext(
+            client=self.get_http_client()
+        )
 
     @abc.abstractmethod
     def process(self):
         pass
 
     def post_process(self):
-        self.client.close()
+        self._context.client.close()
 
     def __call__(self, *args, **kwargs):
-        self.log(f"processing job: {self.name}", level="DEBUG")
+        self.logger.debug(f"processing job: {self.name}")
         try:
             self.pre_process()
             self.process()
