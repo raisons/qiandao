@@ -1,0 +1,8 @@
+version: '3.6'
+
+services:
+  qiandao:
+    image: qiandao:latest
+    container_name: qiandao
+    build:
+      context: .
