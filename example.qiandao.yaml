@@ -28,26 +28,29 @@ notify:
 
 tasks:
   test:
-    enable: true
+    enable: false
 
   v2ex:
-    enable: true
+    enable: false
     cookies: ''
 
   linux_do:
-    enable: true
+    enable: false
     cookies: ''
     csrf_token: ''
 
   it_home:
-    enable: true
+    enable: false
     username: ""
     password: ""
 
   tank:
-    enable: true
+    enable: false
     access_token:
 
 schedule:
-  trigger: "crontab"
-  expr: "0 0 8 * *"
+  trigger: "cron"
+  minute: 0
+  hour: 8
+  day: "*"
+  month: "*"
