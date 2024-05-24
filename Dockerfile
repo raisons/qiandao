@@ -5,19 +5,16 @@ WORKDIR /qiandao
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# 设置pip源
-RUN pip config set global.index-url https://pypi.mirrors.ustc.edu.cn/simple && pip install --upgrade pip
-
 COPY requirements.txt /qiandao/requirements.txt
 
 # 安装依赖
-RUN pip install --no-cache-dir  -r ./requirements.txt
-
+RUN pip install --no-cache-dir  -r ./requirements.txt -i https://pypi.mirrors.ustc.edu.cn/simple
 
 COPY qiandao /qiandao/qiandao
 
-COPY qiandao.yaml /qiandao/qiandao.yaml
+COPY example.qiandao.yaml /qiandao/qiandao.yaml
 
-COPY ./docker-entrypoint.sh /server
+# 修改时区 否则报错debian可以直接设置环境变量
+ENV TZ=Asia/Shanghai
 
 ENTRYPOINT ["python", "-m", "qiandao", "--scheduled"]

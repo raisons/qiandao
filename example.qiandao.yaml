@@ -54,3 +54,4 @@ schedule:
   hour: 8
   day: "*"
   month: "*"
+  timezone: "Asia/Shanghai"

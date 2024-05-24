@@ -6,3 +6,5 @@ services:
     container_name: qiandao
     build:
       context: .
+    volumes:
+      - ./qiandao.yaml:/qiandao/qiandao.yaml
