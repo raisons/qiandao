@@ -68,7 +68,7 @@ class V2exTask(Task):
             self.check_in(once)
             # self.notify("")
             coins = self.query_balance()
-            self.notify(f"领取成功: 账户余额{coins}")
+            self.notify(f"领取成功:账户余额{coins}")
 
         except IndexError:
             pass

@@ -144,7 +144,7 @@ class ItHomeTask(Task):
         }
 
         data = httpx.get(url=url, params=params, headers=headers).json()
-        self.logger.debug(data)
+        self.debug(data)
         if data["ok"] == 1:
             result = Result.model_validate(data)
             self.notify(f"{result.title}, {result.message['签到奖励']}")

@@ -61,17 +61,17 @@ class TankTask(Task):
             "port": "HJ0002"
         }
         resp = self.client.post(url, data=payload).json()
-        self.logger.debug(resp)
+        self.debug(resp)
         resp = Response[str].model_validate(resp)
         if resp.code == "000000":
             return True
 
-        self.logger.warning(resp.description)
+        self.log(resp.description, level='warning')
         return False
 
     def process(self):
         self.signin()
         info = self.get_signin_status()
-        self.notify("连续签到: %s, 剩余坦克币: %s" % (
+        self.notify("连续签到:%s, 剩余坦克币:%s" % (
             info.continue_sign_days, info.remind_point
         ))
