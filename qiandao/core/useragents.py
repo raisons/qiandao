@@ -12,3 +12,5 @@ ithome = ('Mozilla/5.0 (Linux; Android 9; MI 6 Build/PKQ1.190118.001; wv) '
           'AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 '
           'Chrome/81.0.4044.138 Mobile Safari/537.36 '
           'ithome/rmsdklevel2/night/7.26')
+
+m_lol = "QTL/10.9.0 (iPhone; IOS 16.6.1; Scale/3.00)"
