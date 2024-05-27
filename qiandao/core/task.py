@@ -33,6 +33,11 @@ class TaskContext(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
+class Proxies(BaseModel):
+    http: Annotated[HttpUrl, Field(serialization_alias="http://")]
+    https: Annotated[HttpUrl, Field(serialization_alias="https://")]
+
+
 class Task(BaseModel):
     """
     Task基础类
@@ -41,7 +46,7 @@ class Task(BaseModel):
 
     # 可配置项
     enable: Annotated[bool, Configurable] = False
-    http_proxy: Annotated[HttpUrl, Configurable] = None
+    proxies: Annotated[Proxies, Configurable] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
@@ -60,7 +65,18 @@ class Task(BaseModel):
         return logging.getLogger(self.__module__)
 
     def get_http_client(self):
-        return httpx.Client()
+        return httpx.Client(
+            proxies=self.get_http_proxies()
+        )
+
+    def get_http_proxies(self) -> dict[str, str] | None:
+        if self.proxies:
+            proxies = self.proxies.model_dump(by_alias=True, mode="json")
+
+            self.debug(proxies)
+            return proxies
+
+        return None
 
     def log(self, message, level: LOG_LEVEL = "info"):
         getattr(self.logger, level)("%s: %s" % (self.name, message))
@@ -92,10 +108,10 @@ class Task(BaseModel):
             self.post_process()
         except ValidationError as e:
             convert = ErrorConverter(e)
-            self.logger.error(convert)
+            self.log(convert, level="error")
             self.notify(str(convert))
         except Exception as e:
-            self.logger.exception(e)
+            self.log(e, level="error")
             self.notify(str(e))
 
     @staticmethod

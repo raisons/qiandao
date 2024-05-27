@@ -32,6 +32,9 @@ tasks:
 
   v2ex:
     enable: false
+    proxies:
+      http: "http://127.0.0.1:6152"
+      https: "http://127.0.0.1:6152"
     cookies: ''
 
   linux_do:
@@ -47,6 +50,10 @@ tasks:
   tank:
     enable: false
     access_token:
+
+  lol:
+    enable: false
+    cookies:
 
 schedule:
   trigger: "cron"

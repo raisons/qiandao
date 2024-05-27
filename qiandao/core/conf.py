@@ -8,7 +8,7 @@ from qiandao.core.notify import BarkNotification
 
 class Settings(BaseModel):
     debug: bool
-    notify: BarkNotification = None
+    notify: Optional[BarkNotification] = None
     logging: dict
     tasks: dict[str, dict[str, Any]] = {}
     schedule: Optional[dict[str, Any]] = None
@@ -16,7 +16,7 @@ class Settings(BaseModel):
     @property
     def enabled_tasks(self):
         for task_name, task_conf in self.tasks.items():
-            if task_conf["enable"]:
+            if task_conf.get("enable", False):
                 yield task_name, task_conf
 
     @classmethod

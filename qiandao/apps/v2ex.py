@@ -23,6 +23,7 @@ class V2exTask(Task):
                 "User-Agent": safari
             },
             cookies=self.split_cookie(self.cookies),
+            proxies=self.get_http_proxies()
         )
 
     def query_balance(self):
