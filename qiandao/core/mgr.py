@@ -10,22 +10,31 @@ from qiandao.apps.test import TestTask
 from qiandao.apps.v2ex import V2exTask
 from qiandao.apps.it_home import ItHomeTask
 from qiandao.apps.tank import TankTask
+from qiandao.apps.mlol import MLoLTask
 
 TASKS = {
     "test": TestTask,
     "v2ex": V2exTask,
     "it_home": ItHomeTask,
     "tank": TankTask,
+    "lol": MLoLTask,
 }
 
 
 class QianDao:
 
-    def __init__(self, config: str):
+    def __init__(self, config: str, no_notify: bool = False):
+        self.no_notify = no_notify
         self.settings = Settings.from_yaml(config)
         self.tasks: list[tuple[type[Task], dict]] = []
 
     def configure_logging(self):
+        for logger_name in self.settings.logging["loggers"]:
+            if self.settings.debug:
+                self.settings.logging["loggers"][logger_name]["level"] = "DEBUG"
+            else:
+                self.settings.logging["loggers"][logger_name]["level"] = "INFO"
+
         logging.config.dictConfig(self.settings.logging)
 
     def configure_tasks(self):
@@ -45,17 +54,22 @@ class QianDao:
                 "msg": task.ctx.msg
             })
 
-        self.notify(msg_list)
+        if not self.no_notify:
+            self.notify(msg_list)
 
     def notify(self, msg_list):
         message = ""
         for i, msg in enumerate(msg_list):
+            if not msg:
+                continue
             message += msg["name"]
             message += ":\n"
             message += "\n".join(msg["msg"])
             if i < len(msg_list) - 1:
                 message += "\n\n"
 
+        if message == "":
+            return
         now = datetime.now().strftime("%Y%m%d")
         self.settings.notify.send(message, title=f"每日签到{now}")
 

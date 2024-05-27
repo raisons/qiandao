@@ -3,7 +3,7 @@ import abc
 import logging
 import httpx
 from functools import cached_property
-from typing import ClassVar, Optional, Annotated
+from typing import ClassVar, Optional, Annotated, Literal
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -15,6 +15,8 @@ from pydantic import (
 
 from qiandao.core.notify import Notification
 from qiandao.core.utils import ErrorConverter
+
+LOG_LEVEL = Literal["info", "debug", "warning", "error", "exception"]
 
 Configurable = Field(frozen=True)
 
@@ -60,8 +62,14 @@ class Task(BaseModel):
     def get_http_client(self):
         return httpx.Client()
 
+    def log(self, message, level: LOG_LEVEL = "info"):
+        getattr(self.logger, level)("%s: %s" % (self.name, message))
+
+    def debug(self, message):
+        self.log(message, level="debug")
+
     def notify(self, message: str):
-        self.logger.info("%s: %s" % (self.name, message))
+        self.log(message)
         self.ctx.msg.append(message)
 
     def pre_process(self):
@@ -77,13 +85,18 @@ class Task(BaseModel):
         self._context.client.close()
 
     def __call__(self, *args, **kwargs):
-        self.logger.debug(f"processing job: {self.name}")
+        self.debug(f"processing task")
         try:
             self.pre_process()
             self.process()
             self.post_process()
         except ValidationError as e:
-            self.logger.error(ErrorConverter(e))
+            convert = ErrorConverter(e)
+            self.logger.error(convert)
+            self.notify(str(convert))
+        except Exception as e:
+            self.logger.exception(e)
+            self.notify(str(e))
 
     @staticmethod
     def split_cookie(raw_cookie: str) -> dict[str, str]:
