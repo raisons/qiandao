@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+import os
+import click
+import subprocess
+
+
+@click.group()
+def entrypoint():
+    pass
+
+
+@entrypoint.command()
+def web():
+    import django
+    from django.core.management import call_command
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
+    django.setup()
+    call_command('check', deploy=True)
+    call_command('migrate')
+    subprocess.run(['gunicorn', 'main.wsgi'])
+
+
+@entrypoint.command()
+def worker():
+    subprocess.run([
+        'celery', '-A', 'main', 'worker', '-l', 'info',
+    ])
+
+
+@entrypoint.command()
+def beat():
+    subprocess.run([
+        'celery', '-A', 'main', 'beat', '-l', 'info', '-S', 'django'
+    ])
+
+
+@entrypoint.command()
+def flower():
+    subprocess.run([
+        'celery', '-A', 'tasks', 'flower'
+    ])
+
+
+if __name__ == '__main__':
+    entrypoint()

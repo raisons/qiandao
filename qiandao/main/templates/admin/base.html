@@ -1,0 +1,10 @@
+{% extends 'admin/base.html' %}
+
+{% block extrastyle %}{{ block.super }}
+  <style>
+      label.required::after {
+          content: ' *' !important;
+          color: red;
+      }
+  </style>
+{% endblock %}

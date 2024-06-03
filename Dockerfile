@@ -4,17 +4,15 @@ WORKDIR /qiandao
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV TZ=Asia/Shanghai
 
 COPY requirements.txt /qiandao/requirements.txt
 
 # 安装依赖
-RUN pip install --no-cache-dir  -r ./requirements.txt -i https://pypi.mirrors.ustc.edu.cn/simple
+RUN pip install --no-cache-dir  -r ./requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-COPY qiandao /qiandao/qiandao
+COPY qiandao /qiandao/
 
-COPY example.qiandao.yaml /qiandao/qiandao.yaml
+COPY ./entrypoint /qiandao/entrypoint
 
-# 修改时区 否则报错debian可以直接设置环境变量
-ENV TZ=Asia/Shanghai
-
-ENTRYPOINT ["python", "-m", "qiandao", "--scheduled"]
+ENTRYPOINT ["./entrypoint", "web"]

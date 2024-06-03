@@ -1,10 +1,39 @@
 version: '3.6'
 
 services:
-  qiandao:
-    image: qiandao:latest
+  redis:
+    image: redis:7.0.5
     container_name: qiandao
-    build:
-      context: .
+    restart: always
+    expose:
+      - 6379
+
+  web:
+    image: qiandao:latest
+    container_name: web
+    build: .
+    environment:
+      CELERY_BROKER: redis://redis:6379/1
     volumes:
-      - ./qiandao.yaml:/qiandao/qiandao.yaml
+      - ./.data/:/qiandao/qiandao/storages/
+    entrypoint: [ "./entrypoint", "web" ]
+
+  worker:
+    image: qiandao:latest
+    container_name: worker
+    build: .
+    environment:
+      CELERY_BROKER: redis://redis:6379/1
+    volumes:
+      - ./.data/:/qiandao/qiandao/storages/
+    entrypoint: [ "./entrypoint", "worker" ]
+
+  beat:
+    image: qiandao:latest
+    container_name: beat
+    build: .
+    environment:
+      CELERY_BROKER: redis://redis:6379/1
+    volumes:
+      - ./.data/:/qiandao/qiandao/storages/
+    entrypoint: [ "./entrypoint", "beat" ]

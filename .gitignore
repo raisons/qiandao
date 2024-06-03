@@ -4,3 +4,4 @@
 *.log
 qiandao.toml
 qiandao.yaml
+db.sqlite3
