@@ -26,4 +26,4 @@ def generate():
 
 
 if __name__ == "__main__":
-    generate()
+    print(get_random_string())

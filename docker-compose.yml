@@ -26,8 +26,8 @@ services:
     image: qiandao:latest
     container_name: web
     build: .
-    environment:
-      CELERY_BROKER: redis://redis:6379/1
+    env_file:
+      - .env
     volumes:
       - ./.data/database/:/qiandao/storages/database/
       - ./.data/static/:/qiandao/storages/collection/
@@ -42,8 +42,8 @@ services:
     image: qiandao:latest
     container_name: worker
     build: .
-    environment:
-      CELERY_BROKER: redis://redis:6379/1
+    env_file:
+      - .env
     volumes:
       - ./.data/database/:/qiandao/storages/database/
       - ./.data/logs/:/qiandao/storages/logs/
@@ -56,8 +56,8 @@ services:
     image: qiandao:latest
     container_name: beat
     build: .
-    environment:
-      CELERY_BROKER: redis://redis:6379/1
+    env_file:
+      - .env
     volumes:
       - ./.data/database/:/qiandao/storages/database/
       - ./.data/logs/:/qiandao/storages/logs/

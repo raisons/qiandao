@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 from django.utils.translation import gettext_noop as _
 from .log import configure_logging
-from .secret import get_secret_key
+from .env import ENV
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,13 +22,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_secret_key()
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", False)
+DEBUG = ENV.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = ["*"]
+if DEBUG:
+    ENV.read_env(BASE_DIR.parent / ".env")
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = ENV("SECRET_KEY")
+
+ALLOWED_HOSTS = ["*"] if DEBUG else ENV.list("ALLOWED_HOSTS")
+
+CSRF_TRUSTED_ORIGINS = ENV.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 # Application definition
 

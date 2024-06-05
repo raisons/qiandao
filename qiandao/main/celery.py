@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 from celery import Celery
+from .env import ENV
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
 
@@ -11,7 +12,7 @@ class Config:
     # 保存任务执行返回结果保存到Redis
     # celery 配置 redis
     # result_backend = 'redis://127.0.0.1:6379/11'
-    broker_url = os.getenv("CELERY_BROKER")
+    broker_url = ENV("CELERY_BROKER")
     broker_connection_retry_on_startup = True
     # CELERY_BEAT_REDIS_SCHEDULER_KEY = 'qupot:celery:beat:tasks'
     # or the actual content-type (MIME)
