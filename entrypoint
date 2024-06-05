@@ -16,6 +16,7 @@ def web():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
     django.setup()
     call_command('check', deploy=True)
+    call_command('collectstatic', interactive=False)  # noqa
     call_command('migrate')
     subprocess.run(['gunicorn', 'main.wsgi'])
 

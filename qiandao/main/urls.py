@@ -18,9 +18,7 @@ Including another URLconf
 from django.urls import path
 from django.contrib import admin
 from main.site import site
-# from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-# urlpatterns = staticfiles_urlpatterns()
 urlpatterns = [
     path('', admin.site.urls),
 ]

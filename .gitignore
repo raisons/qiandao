@@ -1,7 +1,11 @@
 .idea
 .venv
+.data
 .env
 *.log
 qiandao.toml
 qiandao.yaml
 db.sqlite3
+secret.txt
+
+qiandao/storages/collection/*

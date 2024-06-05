@@ -1,9 +1,23 @@
 version: '3.6'
 
 services:
+  caddy:
+    image: caddy:alpine
+    container_name: caddy
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "6680:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./.data/static/:/srv/static/
+    depends_on:
+     - web
+
   redis:
     image: redis:7.0.5
-    container_name: qiandao
+    container_name: redis
     restart: always
     expose:
       - 6379
@@ -15,8 +29,14 @@ services:
     environment:
       CELERY_BROKER: redis://redis:6379/1
     volumes:
-      - ./.data/:/qiandao/qiandao/storages/
+      - ./.data/database/:/qiandao/storages/database/
+      - ./.data/static/:/qiandao/storages/collection/
+      - ./.data/logs/:/qiandao/storages/logs/
     entrypoint: [ "./entrypoint", "web" ]
+    expose:
+      - 6677
+    depends_on:
+      - redis
 
   worker:
     image: qiandao:latest
@@ -25,8 +45,12 @@ services:
     environment:
       CELERY_BROKER: redis://redis:6379/1
     volumes:
-      - ./.data/:/qiandao/qiandao/storages/
+      - ./.data/database/:/qiandao/storages/database/
+      - ./.data/logs/:/qiandao/storages/logs/
     entrypoint: [ "./entrypoint", "worker" ]
+    depends_on:
+      - redis
+      - web
 
   beat:
     image: qiandao:latest
@@ -35,5 +59,9 @@ services:
     environment:
       CELERY_BROKER: redis://redis:6379/1
     volumes:
-      - ./.data/:/qiandao/qiandao/storages/
+      - ./.data/database/:/qiandao/storages/database/
+      - ./.data/logs/:/qiandao/storages/logs/
     entrypoint: [ "./entrypoint", "beat" ]
+    depends_on:
+      - redis
+      - web
