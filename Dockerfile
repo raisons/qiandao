@@ -13,6 +13,8 @@ RUN pip install --no-cache-dir  -r ./requirements.txt -i https://pypi.tuna.tsing
 
 COPY qiandao /qiandao/
 
+COPY secret.txt /qiandao/secret.txt
+
 COPY ./entrypoint /qiandao/entrypoint
 
 ENTRYPOINT ["./entrypoint", "web"]
