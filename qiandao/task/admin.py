@@ -1,26 +1,12 @@
 from django.contrib import admin
-from django.utils.html import format_html
 from task.models import (
     V2ex,
     Tank,
     MLoL,
     ItHome,
-    LinuxDo
+    LinuxDo,
+    Alipan,
 )
-
-
-class CookiesMixin:
-    cookies_max_length: int = 50
-
-    @admin.display(description="Cookies")
-    def short_cookies(self, obj):
-        max_length = 50
-        if len(obj.cookies) > max_length:
-            return format_html(
-                '<span>{} ...</span>',
-                obj.cookies[:max_length]
-            )
-        return obj.description
 
 
 @admin.register(ItHome)
@@ -30,13 +16,19 @@ class ItHomeAdmin(admin.ModelAdmin):
 
 
 @admin.register(V2ex)
-class V2exAdmin(admin.ModelAdmin, CookiesMixin):
+class V2exAdmin(admin.ModelAdmin):
     list_display = ("name", "short_cookies", "enable")
 
 
 @admin.register(Tank)
 class TankAdmin(admin.ModelAdmin):
-    list_display = ("name", "access_token", "enable")
+    list_display = (
+        "name",
+        "device_id",
+        "short_refresh_token",
+        "short_access_token",
+        "enable"
+    )
     list_filter = ("enable",)
 
 
@@ -46,5 +38,10 @@ class MLoLAdmin(admin.ModelAdmin):
 
 
 @admin.register(LinuxDo)
-class LinuxDoAdmin(admin.ModelAdmin, CookiesMixin):
+class LinuxDoAdmin(admin.ModelAdmin):
     list_display = ("name", "short_cookies", "csrf_token", "username", "enable")
+
+
+@admin.register(Alipan)
+class AlipanAdmin(admin.ModelAdmin):
+    list_display = ("name", "refresh_token", "enable")

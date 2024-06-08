@@ -14,3 +14,7 @@ ithome = ('Mozilla/5.0 (Linux; Android 9; MI 6 Build/PKQ1.190118.001; wv) '
           'ithome/rmsdklevel2/night/7.26')
 
 m_lol = "QTL/10.9.0 (iPhone; IOS 16.6.1; Scale/3.00)"
+
+alipan_app = ("AliApp(AYSD/5.8.1) com.alicloud.smartdrive/5.8.1 "
+              "Version/16.6.1 Channel/201200 "
+              "Language/zh-Hans-CN /iOS Mobile/iPhone13,4")

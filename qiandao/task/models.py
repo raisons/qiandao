@@ -1,5 +1,16 @@
+import uuid
 from django.db import models
 from system.models import Proxies
+
+
+def alias(field_name):
+    def wrap(self):
+        return self.short(field_name)
+
+    wrap.short_description = field_name
+    wrap.__name__ = field_name
+
+    return wrap
 
 
 class TaskModel(models.Model):
@@ -16,12 +27,21 @@ class TaskModel(models.Model):
     def __str__(self):
         return self.name
 
+    def short(self, field_name, max_length=50):
+        field = getattr(self, field_name)
+        if len(field) > max_length:
+            return field[:max_length] + " ..."
+
+        return field
+
     class Meta:
         abstract = True
 
 
 class V2ex(TaskModel):
     cookies = models.TextField()
+
+    short_cookies = alias("cookies")
 
     class Meta:
         verbose_name = "V2EX配置"
@@ -41,6 +61,8 @@ class MLoL(TaskModel):
     client_ticket = models.TextField(null=False)
     user_id = models.CharField(max_length=128)
 
+    short_client_ticket = alias("client_ticket")
+
     class Meta:
         verbose_name = "掌上英雄联盟配置"
         verbose_name_plural = "掌上英雄联盟"
@@ -48,6 +70,11 @@ class MLoL(TaskModel):
 
 class Tank(TaskModel):
     access_token = models.TextField()
+    refresh_token = models.TextField(default="")
+    device_id = models.TextField(default="")
+
+    short_access_token = alias("access_token")
+    short_refresh_token = alias("refresh_token")
 
     class Meta:
         verbose_name = "坦克App配置"
@@ -59,6 +86,16 @@ class LinuxDo(TaskModel):
     csrf_token = models.TextField()
     username = models.CharField(max_length=32, null=True, blank=True)
 
+    short_cookies = alias("cookies")
+
     class Meta:
         verbose_name = "Linux.do配置"
         verbose_name_plural = "Linux.do"
+
+
+class Alipan(TaskModel):
+    refresh_token = models.TextField()
+
+    class Meta:
+        verbose_name = "阿里云盘配置"
+        verbose_name_plural = "阿里云盘"
