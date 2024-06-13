@@ -2,6 +2,8 @@
 
 基于Django, Celery和Pydantic的签到框架
 
+![](./images/qiandao.png)
+
 - 支持docker
 - 支持通知
 - 支持一次性任务
